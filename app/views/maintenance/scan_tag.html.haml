@@ -1,0 +1,89 @@
+- @previous =  @tag.id - 1 if @tag.id > 1
+- @next =  @tag.id + 1
+.btn-group
+  .btn
+    %i.icon-refresh
+    = link_to "Traduire tous les tags", convert_tags_path, :remote => true
+  .btn
+    %i.icon-tag
+    = link_to 'Humaniser tous les tags', humanize_path, :remote => true
+  .btn
+    %i.icon-arrow-left
+    = link_to 'Précédent', scantag_path(:id => @previous)
+  .btn
+    = link_to 'Suivant', scantag_path(:id => @next)
+    %i.icon-arrow-right
+%hr
+.row-fluid
+  .span5
+    .well
+      %h1= @tag.name
+      - if not @target.nil?
+        %span.label.label-success Normalisé
+        %span.label.label-info= @target.context
+      - if @companies_skill_count > 0
+        %span.label.label=  @companies_skill_count.to_s + " sociétés skill" 
+      - if @companies_sector_count > 0
+        %span.label.label=  @companies_sector_count.to_s + " sociétés sector"
+      %p
+      - if @proposals_count > 0
+        %span.label.label=  @proposals_count.to_s + " offres" 
+
+
+  .span4
+    %b Tags similaires
+    - if not @similar_tags.nil?
+      - @similar_tags.each do |tag|
+        / = debug tag 
+        %li= link_to tag.name , scantag_path(:id => tag.id)
+  .span2
+    .btn-group
+      .btn
+        %i.icon-trash
+        = link_to 'Supprimer ce tag', removetag_path(:id => @tag.id), :remote => true
+%br
+.row-fluid
+  .span10
+    = form_tag renametag_path, :method => :get, :remote => true  do 
+      = text_field_tag :new_name
+      = hidden_field_tag :id, @tag.id
+      = submit_tag "Renommer ce tag"
+    %hr
+.row-fluid
+  .span8
+    %h3 Règles de traduction
+    %hr
+    = form_tag add_target_tag_path, :method => :get, :remote => true  do 
+      = select_tag :context, "<option>sectoral_tags</option><option>skill_tags</option>".html_safe
+      = hidden_field_tag :id, @tag.id
+      = submit_tag "Ajouter comme tag normalisé"
+    %hr
+    = form_tag add_to_translation_list_path, :method => :get do
+      = select_tag :rule, "<option>Remplacer par</option><option>Ajouter</option>".html_safe
+      = select_tag :target, options_from_collection_for_select(@target_tags, "id", "name")
+      = hidden_field_tag :from, @tag.id
+      = submit_tag "Ajouter à la liste"
+  .span4
+    %h3 Règles existantes
+    - @change_tags.each do |target|
+      %li=  target.name + "--> " + TargetTag.find(target.target_tag_id).name
+  
+
+%br
+.row-fluid
+  .span4
+    %h3  Sociétés avec ce savoir-faire 
+    - @companies_skill.each do |company|
+      %li=  company.name
+  .span4
+    %h3  Sociétés de ce secteur 
+    - @companies_sector.each do |company|
+      %li=  company.name
+      
+  .span4
+    %h3  Offres concernées
+    - @proposals.each do |proposal|
+      %li=  proposal.summary
+
+
+%hr

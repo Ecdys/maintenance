@@ -1,0 +1,14 @@
+.bundle
+db/*.sqlite3
+log/*.log
+tmp/
+.sass-cache/
+
+/config/database.yml
+.DS_Store
+/public/assets/
+/log/searchd.development.pid
+/config/development.sphinx.conf
+/db/sphinx/
+/private/
+public/uploads/
