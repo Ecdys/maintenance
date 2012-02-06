@@ -74,16 +74,16 @@
   .span4
     %h3  Sociétés avec ce savoir-faire 
     - @companies_skill.each do |company|
-      %li=  company.name
+      %li=  link_to company.name, "http://dev.spotapartner.com/companies/#{company.id}"
   .span4
     %h3  Sociétés de ce secteur 
     - @companies_sector.each do |company|
-      %li=  company.name
+      %li=  link_to company.name, "http://dev.spotapartner.com/companies/#{company.id}"
       
   .span4
     %h3  Offres concernées
     - @proposals.each do |proposal|
-      %li=  proposal.summary
+      %li=  link_to proposal.summary, "http://dev.spotapartner.com/proposals/#{company.id}"
 
 
 %hr
