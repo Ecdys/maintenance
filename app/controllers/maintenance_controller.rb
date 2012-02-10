@@ -1,5 +1,7 @@
 class MaintenanceController < ApplicationController
   
+  autocomplete :target_tag, :name  
+  
   def humanize
     tags = Tag.all
     tags.each do |tag|
@@ -54,7 +56,9 @@ class MaintenanceController < ApplicationController
     @tag_target.name = @old_tag.name
     @tag_target.target_tag_id = @target
     @tag_target.rule = @rule
-    @tag_target.save
+    if not @target.blank?
+      @tag_target.save
+    end
     
     redirect_to :action => "scan_tag", :id => @from
      

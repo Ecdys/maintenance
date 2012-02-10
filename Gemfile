@@ -40,6 +40,7 @@ gem 'haml-rails'
 gem  "i18n"
 gem 'devise', "1.5.3"
 gem "google_visualr", "~> 2.1.0"
+gem 'rails3-jquery-autocomplete'
 
 
 gem 'delayed_job_active_record'
