@@ -27,6 +27,9 @@ class MaintenanceController < ApplicationController
       @tag = Tag.first
     else
       @tag = Tag.where("id >= #{params[:id]}").first
+      if @tag.nil?
+        @tag = Tag.first
+      end
     end
     @similar_tags = Tag.search @tag.name, :match_mode => :any
     @target_tags = TargetTag.all
@@ -154,6 +157,7 @@ class MaintenanceController < ApplicationController
     end
     
     # on regarde si ce tag était normalisé pour renommer également celui-ci
+
     @target_tag = TargetTag.where(:name => old_tag).first
     if not @target_tag.nil?
       @target_tag.name = new_tag

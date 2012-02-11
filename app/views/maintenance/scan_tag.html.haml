@@ -39,7 +39,7 @@
           - star = ""
         - else
           - star = "❤ "
-        %li= link_to star + tag.name.html_safe , scantag_path(:id => tag.id)
+        %li= link_to (star + tag.name).html_safe , scantag_path(:id => tag.id)
   .span2
     .btn-group
       .btn
@@ -65,7 +65,6 @@
     = form_tag add_rule_path, :method => :get do
       = select_tag :rule, "<option>Remplacer par</option><option>Ajouter</option><option>Supprimer</option>".html_safe
       = autocomplete_field_tag 'target_name', '', autocomplete_target_tag_name_path, :size => 20, :id_element => '#target_id'
-      / = select_tag :target, options_from_collection_for_select(@target_tags, "id", "name")
       = hidden_field_tag :target, "", :id => "target_id"
       = hidden_field_tag :from, @tag.id
       = submit_tag "Ajouter à la liste"
@@ -82,10 +81,10 @@
         - icon = " --> "
         - color = "red"
       %li
-        %span{:style => "color:#{color}"}=  target.name 
+        %span{:style => "color:#{color}"}=  link_to target.name.html_safe , target
         %span= icon
         - if not target.rule == "Supprimer"
-          %span=  TargetTag.find(target.target_tag_id).name
+          %span=  TargetTag.find(target.target_tag_id).name.html_safe 
   
 
 %br
