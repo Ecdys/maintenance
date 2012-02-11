@@ -1,0 +1,22 @@
+= simple_form_for @tag_rule do |f|
+  -if @tag_rule.errors.any?
+    #error_explanation
+      %h2= "#{pluralize(@client.errors.count, "error")} prohibited this tag_rule from being saved:"
+      %ul
+        - @tag_rule.errors.full_messages.each do |msg|
+          %li= msg
+
+  - if @tag_rule.target_tag.nil?
+    - target_name =""
+  - else
+    - target_name = @tag_rule.target_tag.name
+  %fieldset
+    = f.input :name, :label => "Nom du tag concerné", :input_html => { :value => @tag_rule.name.html_safe}
+    %hr
+    = f.input :rule, :label => "Action", :collection => [ "Remplacer par", "Ajouter", "Supprimer"]
+    = autocomplete_field_tag 'target_name', '', autocomplete_target_tag_name_path, :size => 20, :id_element => '#target_id',  :value => target_name
+    = f.input :target_tag_id, :as => :hidden, :input_html => { :id => "target_id" }
+
+
+  %div.actions
+    = f.submit

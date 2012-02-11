@@ -14,15 +14,9 @@ class MaintenanceController < ApplicationController
   end
   
   def add_target_tag
-    @tag = Tag.find(params[:id])
+    @tag_name = Tag.find(params[:id]).name.humanize
     @context = params[:context]
-    @target_tag = TargetTag.where(:name => @tag.name)
-    if @target_tag.empty?
-      @target_tag = TargetTag.new
-      @target_tag.name = @tag.name.humanize
-      @target_tag.context = @context
-      @target_tag.save
-    end
+    @target_tag = TargetTag.where(:name => @tag_name).first_or_create!(:context => @context)
     respond_to do |format|
       format.js
     end
@@ -36,7 +30,7 @@ class MaintenanceController < ApplicationController
     end
     @similar_tags = Tag.search @tag.name, :match_mode => :any
     @target_tags = TargetTag.all
-    @change_tags = TagTargetTag.where(:name => @tag.name)
+    @change_tags = TagRule.where(:name => @tag.name)
     @companies_skill = Company.tagged_with(@tag.name, :on => :skill_tags, :any => true)
     @companies_skill_count = @companies_skill.count
     @companies_sector = Company.tagged_with(@tag.name, :on => :sectoral_tags, :any => true)
@@ -47,17 +41,18 @@ class MaintenanceController < ApplicationController
     
   end
   
-  def add_to_translation_list
+  def add_rule
     @from = params[:from]
     @old_tag = Tag.find(@from)
     @target = params[:target]
     @rule = params[:rule]
-    @tag_target = TagTargetTag.new
-    @tag_target.name = @old_tag.name
-    @tag_target.target_tag_id = @target
-    @tag_target.rule = @rule
-    if not @target.blank?
-      @tag_target.save
+    @tag_rule = TagRule.new
+    @tag_rule.name = @old_tag.name
+    @tag_rule.target_tag_id = @target
+    @tag_rule.rule = @rule
+    logger.debug  "rule -------> #{@rule}"
+    if not @target.blank? or @rule == "Supprimer"
+      @tag_rule.save
     end
     
     redirect_to :action => "scan_tag", :id => @from
@@ -65,20 +60,26 @@ class MaintenanceController < ApplicationController
   end
   
   def convert_tags
-    translations = TagTargetTag.all
-    translations.each do |elem|
+    tag_rules = TagRule.all
+    tag_rules.each do |elem|
       old_tag = elem.name
       rule = elem.rule
       tag = Tag.find_by_name(old_tag)
-
+    
       # si le tag existe : traduction puis suppression
       if not tag.nil?
-        new_tag = TargetTag.find(elem.target_tag_id).name
-        if rule ==  "Remplacer par"   
-          update_tag(old_tag, new_tag)
-          tag.destroy
+        if rule ==  "Supprimer"
+          destroy_tag(tag) 
         else
-          add_tag(old_tag, new_tag)
+          new_tag = TargetTag.find(elem.target_tag_id).name  
+          
+          if rule ==  "Remplacer par"   
+            add_or_rename_tag(old_tag, new_tag, "rename")
+            tag.destroy
+          else rule ==  "Ajouter" 
+            add_or_rename_tag(old_tag, new_tag, "add")         
+          end
+           
         end
       end
     end
@@ -90,20 +91,7 @@ class MaintenanceController < ApplicationController
 
   def remove_tag
     tag = Tag.find(params[:id])
-    tag_name = tag.name
-    companies = Company.tagged_with(tag_name)
-    companies.each do |company|
-      company.skill_tag_list.remove(tag_name)
-      company.sectoral_tag_list.remove(tag_name)
-      company.save
-    end
-    proposals = Proposal.tagged_with(tag_name)
-    proposals.each do |proposal|
-      proposal.skill_tag_list.remove(tag_name)
-      proposal.sectoral_tag_list.remove(tag_name)
-      proposal.save
-    end
-    tag.destroy
+    destroy_tag(tag)
     
     respond_to do |format|
       format.js
@@ -115,64 +103,91 @@ class MaintenanceController < ApplicationController
     tag = Tag.find(params[:id])
     old_tag = tag.name
     new_tag = params[:new_name]
-    update_tag(old_tag, new_tag)
+    add_or_rename_tag(old_tag, new_tag, "rename")
+    
     tag.destroy
  
     respond_to do |format|
       format.js
     end
   end
+
+# on vérifie toutes les occurences de tags lors des modifications ou suppressions
+
   
-  def update_tag(old_tag, new_tag)
-    companies = Company.tagged_with(old_tag, :on => :skill_tags, :any => true)
+  def add_or_rename_tag(old_tag, new_tag, action)
+    companies = Company.tagged_with(old_tag, :on => :skill_tags, :any => true)  
     companies.each do |company|
-      company.skill_tag_list.remove(old_tag)
+      if action == "rename"
+        company.skill_tag_list.remove(old_tag)
+      end
       company.skill_tag_list.add(new_tag, :parse => true)
       company.save
     end
+    
     companies = Company.tagged_with(old_tag, :on => :sectoral_tags, :any => true)
     companies.each do |company|
-      company.sectoral_tag_list.remove(old_tag)
+      if action == "rename"
+        company.sectoral_tag_list.remove(old_tag)
+      end
       company.sectoral_tag_list.add(new_tag, :parse => true)
       company.save
     end
     
-    proposals = Proposal.tagged_with(old_tag, :on => :skill_tags, :any => true)
-    proposals.each do |proposal|
-      proposal.skill_tag_list.remove(old_tag)
-      proposal.skill_tag_list.add(new_tag, :parse => true)
-      proposal.save
-    end
-    proposals = Proposal.tagged_with(old_tag, :on => :sectoral_tags, :any => true)
-    proposals.each do |proposal|
-      proposal.sectoral_tag_list.remove(old_tag)
-      proposal.sectoral_tag_list.add(new_tag, :parse => true)
-    proposal.save
-    end
-  end  
-
-
-  def add_tag(old_tag, new_tag)
-    companies = Company.tagged_with(old_tag, :on => :skill_tags, :any => true)
-    companies.each do |company|
-      company.skill_tag_list.add(new_tag, :parse => true)
-      company.save
-    end
-    companies = Company.tagged_with(old_tag, :on => :sectoral_tags, :any => true)
-    companies.each do |company|
-      company.sectoral_tag_list.add(new_tag, :parse => true)
-      company.save
-    end
     
     proposals = Proposal.tagged_with(old_tag, :on => :skill_tags, :any => true)
     proposals.each do |proposal|
+      if action == "rename"
+        proposal.skill_tag_list.remove(old_tag)
+      end
       proposal.skill_tag_list.add(new_tag, :parse => true)
       proposal.save
     end
+   
     proposals = Proposal.tagged_with(old_tag, :on => :sectoral_tags, :any => true)
     proposals.each do |proposal|
+      if action == "rename"
+        proposal.sectoral_tag_list.remove(old_tag)
+      end
       proposal.sectoral_tag_list.add(new_tag, :parse => true)
-    proposal.save
+      proposal.save
     end
-  end   
+    
+    # on regarde si ce tag était normalisé pour renommer également celui-ci
+    @target_tag = TargetTag.where(:name => old_tag).first
+    if not @target_tag.nil?
+      @target_tag.name = new_tag
+      @target_tag.save
+    end
+    
+    
+  end
+    
+    
+    def destroy_tag(tag)
+      tag_name = tag.name
+      companies = Company.tagged_with(tag_name)
+      companies.each do |company|
+        company.skill_tag_list.remove(tag_name)
+        company.sectoral_tag_list.remove(tag_name)
+        company.save
+      end
+      
+      proposals = Proposal.tagged_with(tag_name)
+      proposals.each do |proposal|
+        proposal.skill_tag_list.remove(tag_name)
+        proposal.sectoral_tag_list.remove(tag_name)
+        proposal.save
+      end
+      
+      @target_tag = TargetTag.where(:name => @tag_name).first
+      # on regarde si ce tag était normalisé pour supprimer également celui-ci
+      if not @target_tag.nil?
+        @target_tag.destroy
+      end
+      
+      tag.destroy
+          
+    end  
+
 end

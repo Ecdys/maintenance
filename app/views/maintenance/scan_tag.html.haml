@@ -21,6 +21,7 @@
       - if not @target.nil?
         %span.label.label-success Normalisé
         %span.label.label-info= @target.context
+      %p
       - if @companies_skill_count > 0
         %span.label.label=  @companies_skill_count.to_s + " sociétés skill" 
       - if @companies_sector_count > 0
@@ -34,8 +35,11 @@
     %b Tags similaires
     - if not @similar_tags.nil?
       - @similar_tags.each do |tag|
-        / = debug tag 
-        %li= link_to tag.name.html_safe , scantag_path(:id => tag.id)
+        - if TargetTag.where(:name => tag.name).first.blank?
+          - star = ""
+        - else
+          - star = "❤ "
+        %li= link_to star + tag.name.html_safe , scantag_path(:id => tag.id)
   .span2
     .btn-group
       .btn
@@ -58,8 +62,8 @@
       = hidden_field_tag :id, @tag.id
       = submit_tag "Ajouter comme tag normalisé"
     %hr
-    = form_tag add_to_translation_list_path, :method => :get do
-      = select_tag :rule, "<option>Remplacer par</option><option>Ajouter</option>".html_safe
+    = form_tag add_rule_path, :method => :get do
+      = select_tag :rule, "<option>Remplacer par</option><option>Ajouter</option><option>Supprimer</option>".html_safe
       = autocomplete_field_tag 'target_name', '', autocomplete_target_tag_name_path, :size => 20, :id_element => '#target_id'
       / = select_tag :target, options_from_collection_for_select(@target_tags, "id", "name")
       = hidden_field_tag :target, "", :id => "target_id"
@@ -68,7 +72,20 @@
   .span4
     %h3 Règles existantes
     - @change_tags.each do |target|
-      %li=  target.name + "--> " + TargetTag.find(target.target_tag_id).name
+      - if target.rule == "Ajouter"
+        - icon = " --> +"
+        - color = "black"
+      - elsif target.rule == "Supprimer"
+        - icon = " X"
+        - color = "red"
+      - else
+        - icon = " --> "
+        - color = "red"
+      %li
+        %span{:style => "color:#{color}"}=  target.name 
+        %span= icon
+        - if not target.rule == "Supprimer"
+          %span=  TargetTag.find(target.target_tag_id).name
   
 
 %br

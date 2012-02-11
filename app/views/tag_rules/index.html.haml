@@ -1,0 +1,37 @@
+%h3 Liste des règles de transformation de tags
+
+%table
+  %tr
+    %th Nom du tag
+    %th Action
+    %th Tag cible
+    %th
+    %th
+    %th
+
+  - @tag_rules.each do |tag_rule|
+    - if tag_rule.rule == "Supprimer"
+      - from_color = "red"
+      - to_color = "red"
+    - elsif tag_rule.rule == "Ajouter"
+      - from_color = "green"
+      - to_color = "green"
+    - else
+      - from_color = "red"
+      - to_color = "green"
+    %tr
+      %td{:style => "color:#{from_color}"}= tag_rule.name.html_safe
+      %td= tag_rule.rule
+      %td{:style => "color:#{to_color}"}= tag_rule.target_tag.name if not tag_rule.target_tag.nil?
+
+      %td= link_to 'Afficher', tag_rule
+      %td= link_to 'Modifier', edit_tag_rule_path(tag_rule)
+      %td= link_to 'supprimer', tag_rule, :confirm => 'Vous êtes sûr ?', :method => :delete
+
+%br
+
+= link_to 'Nouvelle règle', new_tag_rule_path
+
+
+
+

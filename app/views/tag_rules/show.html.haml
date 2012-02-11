@@ -1,0 +1,12 @@
+%p#notice= notice
+
+%p= @tag_rule.name.html_safe
+%p= @tag_rule.target_tag.name if not @tag_rule.target_tag.nil?
+%p= @tag_rule.rule
+
+= link_to 'Modifier', edit_tag_rule_path(@tag_rule)
+\|
+= link_to 'Retour à la liste', tag_rules_path
+
+
+

@@ -3,13 +3,16 @@ Maintenance::Application.routes.draw do
 
   devise_for :admin_users, ActiveAdmin::Devise.config
   
+  resources :tag_rules
+
+  
   get 'maintenance/autocomplete_target_tag_name', :as => 'autocomplete_target_tag_name'
 
   
   root :to => "maintenance#scan_tag"
 
   match 'scantag' => 'maintenance#scan_tag', :as => "scantag"
-  match 'add_to_translation_list' => 'maintenance#add_to_translation_list', :as => "add_to_translation_list"
+  match 'add_rule' => 'maintenance#add_rule', :as => "add_rule"
   match 'convert_tags' => 'maintenance#convert_tags', :as => "convert_tags"
   match 'add_target_tag' => 'maintenance#add_target_tag', :as => "add_target_tag"
   match 'renametag' => 'maintenance#rename_tag', :as => "renametag"

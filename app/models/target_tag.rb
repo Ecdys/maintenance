@@ -1,4 +1,4 @@
 class TargetTag < ActiveRecord::Base
-  has_many :tag_target_tags
+  has_many :tag_rules, :dependent => :destroy
   
 end
