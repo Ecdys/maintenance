@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class MaintenanceController < ApplicationController
   
   autocomplete :target_tag, :name  
@@ -53,11 +55,8 @@ class MaintenanceController < ApplicationController
     @tag_rule.name = @old_tag.name
     @tag_rule.target_tag_id = @target
     @tag_rule.rule = @rule
-    logger.debug  "rule -------> #{@rule}"
-    if not @target.blank? or @rule == "Supprimer"
-      @tag_rule.save
-    end
-    
+    @tag_rule.save unless (@target.blank? && @rule != "Supprimer")
+
     redirect_to :action => "scan_tag", :id => @from
      
   end
@@ -92,6 +91,17 @@ class MaintenanceController < ApplicationController
     end
   end
 
+  def update_cache
+    @companies = Company.all
+    @companies.each do |company|
+      company.save
+    end
+    respond_to do |format|
+      format.js
+    end
+  end
+  
+  
   def remove_tag
     tag = Tag.find(params[:id])
     destroy_tag(tag)
@@ -122,18 +132,18 @@ class MaintenanceController < ApplicationController
     companies = Company.tagged_with(old_tag, :on => :skill_tags, :any => true)  
     companies.each do |company|
       if action == "rename"
-        company.skill_tag_list.remove(old_tag)
+        company.skill_tag_list = company.skill_tag_list.remove(old_tag)
       end
-      company.skill_tag_list.add(new_tag, :parse => true)
+      company.skill_tag_list = company.skill_tag_list.add(new_tag, :parse => true)
       company.save
     end
     
     companies = Company.tagged_with(old_tag, :on => :sectoral_tags, :any => true)
     companies.each do |company|
       if action == "rename"
-        company.sectoral_tag_list.remove(old_tag)
+        company.sectoral_tag_list = company.sectoral_tag_list.remove(old_tag)
       end
-      company.sectoral_tag_list.add(new_tag, :parse => true)
+      company.sectoral_tag_list = company.sectoral_tag_list.add(new_tag, :parse => true)
       company.save
     end
     
@@ -141,18 +151,18 @@ class MaintenanceController < ApplicationController
     proposals = Proposal.tagged_with(old_tag, :on => :skill_tags, :any => true)
     proposals.each do |proposal|
       if action == "rename"
-        proposal.skill_tag_list.remove(old_tag)
+        proposal.skill_tag_list = proposal.skill_tag_list.remove(old_tag)
       end
-      proposal.skill_tag_list.add(new_tag, :parse => true)
+      proposal.skill_tag_list = proposal.skill_tag_list.add(new_tag, :parse => true)
       proposal.save
     end
    
     proposals = Proposal.tagged_with(old_tag, :on => :sectoral_tags, :any => true)
     proposals.each do |proposal|
       if action == "rename"
-        proposal.sectoral_tag_list.remove(old_tag)
+        proposal.sectoral_tag_list = proposal.sectoral_tag_list.remove(old_tag)
       end
-      proposal.sectoral_tag_list.add(new_tag, :parse => true)
+      proposal.sectoral_tag_list = proposal.sectoral_tag_list.add(new_tag, :parse => true)
       proposal.save
     end
     

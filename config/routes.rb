@@ -18,5 +18,6 @@ Maintenance::Application.routes.draw do
   match 'renametag' => 'maintenance#rename_tag', :as => "renametag"
   match 'removetag' => 'maintenance#remove_tag', :as => "removetag"
   match 'humanize' => 'maintenance#humanize', :as => "humanize"
+  match 'update_cache' => 'maintenance#update_cache', :as => "update_cache"
   
 end

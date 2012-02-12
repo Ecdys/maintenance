@@ -5,6 +5,9 @@
     %i.icon-refresh
     = link_to "Traduire tous les tags", convert_tags_path, :remote => true
   .btn
+    %i.icon-refresh
+    = link_to "Update cache", update_cache_path, :remote => true
+  .btn
     %i.icon-tag
     = link_to 'Humaniser tous les tags', humanize_path, :remote => true
   .btn
