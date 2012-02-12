@@ -174,6 +174,8 @@ class MaintenanceController < ApplicationController
       @target_tag.save
     end
     
+
+    
     
   end
     
@@ -194,12 +196,14 @@ class MaintenanceController < ApplicationController
         proposal.save
       end
       
+      
       @target_tag = TargetTag.where(:name => @tag_name).first
       # on regarde si ce tag était normalisé pour supprimer également celui-ci
       if not @target_tag.nil?
         @target_tag.destroy
       end
       
+
       tag.destroy
           
     end  
