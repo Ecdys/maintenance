@@ -8,6 +8,8 @@ Maintenance::Application.routes.draw do
   
   get 'maintenance/autocomplete_target_tag_name', :as => 'autocomplete_target_tag_name'
 
+  match 'parse_manutan' => 'manutan#parse_manutan', :as => "parse_manutan"
+  match 'batch_parse_manutan' => 'manutan#batch_parse_manutan', :as => "batch_parse_manutan"
   
   root :to => "maintenance#scan_tag"
 

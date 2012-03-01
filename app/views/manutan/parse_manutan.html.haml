@@ -1,0 +1,45 @@
+%h3 Recherche de prix sur catalogue en ligne MANUTAN
+
+
+
+= form_tag parse_manutan_path, :method => :get do
+  %fieldset
+    %legend Référence
+    = text_field_tag :ref, params[:q], :id => nil, :placeholder => "Référence de l'article", :size => 64
+    = submit_tag "Rechercher"
+%hr
+%h1= @price
+/   
+/ / - @doc.search(".textResult").map{|e| "</span># {e.to_html}" }
+/ / = e
+/ - @result = @doc.search(".proVariationtdglobal").search('//text()')
+/ 
+/ - @result -= @result.search('//script/text()')
+/ - indice = 0
+/ - tab = Array.new
+/ - i = -1
+/ - @result.each do |ref|
+/   - i += 1
+/   - if (i % 7 == 0)
+/     - texto = ref.inner_text.strip
+/     - tab << texto
+/     
+/     - if texto == @ref
+/       - indice = i/7
+/ 
+/ 
+/ %table.table.table-bordered
+/   %thead
+/     %th Référence
+/     %th Prix
+/   %tbody
+/ - i = 0
+/ - @doc.search(".textResult").each do |price|
+/   - if (i == indice)
+/     %tr
+/       %td
+/         = tab[i]
+/       %td
+/         = number_to_currency(price.inner_html.to_f, :locale => :fr)
+/         %p
+/   - i += 1
